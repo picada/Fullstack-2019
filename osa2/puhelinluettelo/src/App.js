@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons'
 
-const Person = ({ person }) => {
-  return (
-    <li>{person.name} {person.number} </li>
-  )
-}
 
-const Persons = ({personsToShow}) =>
-  personsToShow.map(person =>
-  <Person
-    key={person.name}
-    person={person}
-  />
+const Persons = ({personsToShow, remove}) =>
+  personsToShow.map(p =>
+    <li key={p.name}>
+      {p.name} {p.number}
+      <button onClick={() => remove(p)}>Poista</button>
+    </li>
 )
 
 const NewPersonForm = (props) => {
@@ -48,15 +43,12 @@ const App = (props) => {
   const [filter, setFilter] = useState('')
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(response.data)
+    personService
+      .getAll()
+        .then(initialPersons => {
+        setPersons(initialPersons)
       })
   }, [])
-  console.log('render', persons.length, 'persons')
 
   const personsToShow = filter === ''
     ? persons
@@ -66,15 +58,28 @@ const App = (props) => {
     event.preventDefault()
     const nameObject = {
       name: newName,
-      number: newNumber
+      number: newNumber,
     }
 
     if (persons.some(person => person.name === nameObject.name)) {
       window.alert(`${newName} on jo luettelossa`)
     } else {
-      setPersons(persons.concat(nameObject))
-      setNewName('')
-      setNewNumber('')
+      personService
+        .create(nameObject)
+          .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
+    }
+  }
+
+  const removePerson = (person) => {
+    if (window.confirm(`Poistetaanko ${person.name}?`)) {
+      personService.remove(person.id)
+      .then(() => {
+        setPersons(persons.filter(p => p.id !== person.id))
+      })
     }
   }
 
@@ -105,7 +110,7 @@ const App = (props) => {
       />
       <h2>Numerot</h2>
         <ul>
-          <Persons personsToShow={personsToShow}/>
+          <Persons personsToShow={personsToShow} remove={removePerson}/>
         </ul>
     </div>
   )
