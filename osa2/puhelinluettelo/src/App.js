@@ -36,11 +36,38 @@ const FilterForm = (props) => {
   )
 }
 
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="notification">
+      {message}
+    </div>
+  )
+}
+
+const ErrorNotification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="error">
+      {message}
+    </div>
+  )
+}
+
+
 const App = (props) => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
+  const [message, setMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -62,11 +89,41 @@ const App = (props) => {
     }
 
     if (persons.some(person => person.name === nameObject.name)) {
-      window.alert(`${newName} on jo luettelossa`)
+      if (window.confirm(`${newName} on jo luettelossa, korvataanko vanha numero uudella`)) {
+        const person = persons.find(p => p.name === newName)
+        const update = { ...person, number: newNumber };
+        personService.update(person.id, update)
+        .then(updated => {
+          setMessage(
+            `Päivitettiin '${nameObject.name}'`
+          )
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+          setPersons(persons.map(person => person.id !== updated.id ? person : updated))
+          setNewName('')
+          setNewNumber('')
+        })
+        .catch(error => {
+          setErrorMessage(
+            `Henkilön '${newName}' tiedot on jo poistettu`
+          )
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+          setPersons(persons.filter(p => p.id !== person.id))
+        })
+      }
     } else {
       personService
         .create(nameObject)
           .then(returnedPerson => {
+            setMessage(
+              `Lisättiin '${nameObject.name}'`
+            )
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
           setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
@@ -78,6 +135,12 @@ const App = (props) => {
     if (window.confirm(`Poistetaanko ${person.name}?`)) {
       personService.remove(person.id)
       .then(() => {
+        setMessage(
+          `Poistettiin '${person.name}'`
+        )
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
         setPersons(persons.filter(p => p.id !== person.id))
       })
     }
@@ -100,6 +163,8 @@ const App = (props) => {
   return (
     <div>
       <h2>Puhelinluettelo</h2>
+      <Notification message={message}/>
+      <ErrorNotification message={errorMessage}/>
       <FilterForm filter={filter} handleFilterChange={handleFilterChange} />
       <h3>Lisää uusi</h3>
       <NewPersonForm addPerson={addPerson}
