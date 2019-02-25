@@ -23,9 +23,9 @@ const App = () => {
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
-      setBlogs( blogs )
+      setBlogs( blogs.sort((a, b) => b.likes - a.likes) )
     )
-  }, [])
+  }, [blogs])
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedUser')
@@ -90,7 +90,8 @@ const App = () => {
       author: author,
       title: title,
       url: url,
-      user: user.id
+      user: user.id,
+      likes: 0
     }
 
     try {
@@ -137,7 +138,7 @@ const App = () => {
       <p>{user.name} logged in</p>
       <Button handleClick={logout} text='logout'/>
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
+        <Blog key={blog.id} blog={blog}/>
       )}
       <h3>Create new</h3>
       <Togglable buttonLabel='Create new blog'>
