@@ -4,6 +4,8 @@ import Notification from './components/Notification'
 import ErrorNotification from './components/ErrorNotification'
 import Button from './components/Button'
 import NewBlogForm from './components/NewBlogForm'
+import LoginForm from './components/LoginForm'
+import Togglable from './components/Togglable'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import './index.css'
@@ -64,7 +66,7 @@ const App = () => {
     window.localStorage.removeItem('loggedUser')
     blogService.setToken(null)
     setUser(null)
-    setMessage(`Logged out`)
+    setMessage('Logged out')
     setTimeout(() => {
       setMessage(null)
     }, 5000)
@@ -116,28 +118,14 @@ const App = () => {
         <h2>Log in to application</h2>
         <Notification message={message}/>
         <ErrorNotification message={errorMessage}/>
-        <form onSubmit={handleLogin}>
-          <div>
-            Käyttäjätunnus
-              <input
-              type="text"
-              value={username}
-              name="Username"
-              onChange={({ target }) => setUsername(target.value)}
-              />
-          </div>
-          <div>
-            Salasana
-            <input
-            type="password"
-            value={password}
-            name="Password"
-            onChange={({ target }) => setPassword(target.value)}
-            />
-          </div>
-        <button type="submit">Kirjaudu</button>
-      </form>
-    </div>
+        <LoginForm
+          username={username}
+          password={password}
+          handleUsernameChange={({ target }) => setUsername(target.value)}
+          handlePasswordChange={({ target }) => setPassword(target.value)}
+          handleLogin={handleLogin}
+        />
+      </div>
     )
   }
 
@@ -152,14 +140,16 @@ const App = () => {
         <Blog key={blog.id} blog={blog} />
       )}
       <h3>Create new</h3>
-      <NewBlogForm addBlog={createBlog}
-        newTitle={title}
-        handleTitleChange={handleTitleChange}
-        newAuthor={author}
-        handleAuthorChange={handleAuthorChange}
-        newUrl={url}
-        handleUrlChange={handleUrlChange}
-      />
+      <Togglable buttonLabel='Create new blog'>
+        <NewBlogForm addBlog={createBlog}
+          newTitle={title}
+          handleTitleChange={handleTitleChange}
+          newAuthor={author}
+          handleAuthorChange={handleAuthorChange}
+          newUrl={url}
+          handleUrlChange={handleUrlChange}
+        />
+      </Togglable>
     </div>
   )
 }
