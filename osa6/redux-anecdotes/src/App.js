@@ -4,6 +4,7 @@ import NewAnecdote from './components/AnecdoteForm'
 import AnecdoteList from './components/AnecdoteList'
 import Notification from './components/Notification'
 import { initializeAnecdotes } from './reducers/anecdoteReducer'
+import Filter from './components/Filter'
 
 const App = (props) => {
 
@@ -13,7 +14,9 @@ const App = (props) => {
 
   return (
     <div>
+      <h2>Anecdotes</h2>
       {props.notification !== null && <Notification />}
+      <Filter/>
       <AnecdoteList />
       <NewAnecdote />
     </div>

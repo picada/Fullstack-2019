@@ -1,4 +1,8 @@
 import React, { useState } from 'react'
+import {
+  BrowserRouter as Router,
+  Route, Link, Redirect, withRouter
+} from 'react-router-dom'
 
 const Menu = () => {
   const padding = {
@@ -6,9 +10,9 @@ const Menu = () => {
   }
   return (
     <div>
-      <a href='#' style={padding}>anecdotes</a>
-      <a href='#' style={padding}>create new</a>
-      <a href='#' style={padding}>about</a>
+      <Link style={padding} to="/">anecdotes</Link>
+      <Link style={padding} to="/create">create</Link>
+      <Link style={padding} to="/about">about</Link>
     </div>
   )
 }
@@ -17,10 +21,41 @@ const AnecdoteList = ({ anecdotes }) => (
   <div>
     <h2>Anecdotes</h2>
     <ul>
-      {anecdotes.map(anecdote => <li key={anecdote.id} >{anecdote.content}</li>)}
+      {anecdotes.map(anecdote =>
+        <li key={anecdote.id}>
+          <Link to={`/anecdotes/${anecdote.id}`}>{anecdote.content}</Link>
+        </li>
+      )}
     </ul>
   </div>
 )
+
+const Anecdote = ({ anecdote }) => (
+  <div>
+    <h2>'{anecdote.content}' by {anecdote.author}</h2>
+    <div>has {anecdote.votes} votes</div>
+    <div>for more info see {anecdote.info}</div>
+  </div>
+)
+
+const Notification = ({notification}) => {
+
+  const style = {
+   border: 'solid',
+   padding: 10,
+   borderWidth: 1
+ }
+
+  return (
+    notification
+    ? (
+      <div style={style}>
+        {notification}
+      </div>
+    )
+    : null
+  )
+}
 
 const About = () => (
   <div>
@@ -44,7 +79,7 @@ const Footer = () => (
   </div>
 )
 
-const CreateNew = (props) => {
+let CreateNew = (props) => {
   const [content, setContent] = useState('')
   const [author, setAuthor] = useState('')
   const [info, setInfo] = useState('')
@@ -58,6 +93,9 @@ const CreateNew = (props) => {
       info,
       votes: 0
     })
+    props.history.push('/')
+    props.setNotification(`A new anecdote '${content}' created.`)
+    setTimeout(() => props.setNotification(''), 10000)
   }
 
   return (
@@ -82,6 +120,8 @@ const CreateNew = (props) => {
   )
 
 }
+
+CreateNew = withRouter(CreateNew)
 
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
@@ -122,13 +162,25 @@ const App = () => {
     setAnecdotes(anecdotes.map(a => a.id === id ? voted : a))
   }
 
+  const padding = { padding: 5 }
+
   return (
     <div>
       <h1>Software anecdotes</h1>
-      <Menu />
-      <AnecdoteList anecdotes={anecdotes} />
-      <About />
-      <CreateNew addNew={addNew} />
+      <Router>
+        <div>
+          <Menu />
+          < Notification notification={notification} />
+          <Route exact path='/' render={() =>
+            <AnecdoteList anecdotes={anecdotes} />
+          } />
+          <Route path="/about" render={() => <About />} />
+          <Route path="/create" render={() => <CreateNew addNew={addNew} setNotification={setNotification}/>} />
+          <Route exact path="/anecdotes/:id" render={({ match }) =>
+            <Anecdote anecdote={anecdoteById(match.params.id)} />
+          } />
+        </div>
+      </Router>
       <Footer />
     </div>
   )

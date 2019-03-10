@@ -11,7 +11,7 @@ const AnecdoteList = (props) => {
 
   return (
     <div>
-      {props.anecdotes.map(anecdote =>
+      {props.anecdotesToShow.map(anecdote =>
         <div key={anecdote.id}>
           <div>
             {anecdote.content}
@@ -28,13 +28,18 @@ const AnecdoteList = (props) => {
 
 const mapStateToProps = (state) => {
   return {
-    anecdotes: state.anecdotes
+    anecdotesToShow: anecdotesToShow(state),
   }
 }
 
 const mapDispatchToProps = {
   voteAnecdote,
   notificationChange
+}
+
+const anecdotesToShow = ({anecdotes, filter}) => {
+ return anecdotes.filter(a => a.content.toLowerCase()
+ .includes(filter.toLowerCase()))
 }
 
 export default connect(
